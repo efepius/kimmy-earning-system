@@ -1,5 +1,8 @@
 # 🚀 Kimmy Autonomous Earning System
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/efepius/kimmy-earning-system)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/deploy?template=https://github.com/efepius/kimmy-earning-system)
+
 ## 💰 Revenue Streams Overview
 
 This system combines AI-powered content generation with automated platform earning to create multiple passive income streams.
