@@ -12,11 +12,13 @@ from pathlib import Path
 import sys
 
 # Setup logging
+log_path = Path(__file__).parent.parent / 'logs'
+log_path.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('../logs/system.log'),
+        logging.FileHandler(log_path / 'system.log'),
         logging.StreamHandler(sys.stdout)
     ]
 )

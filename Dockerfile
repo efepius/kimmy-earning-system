@@ -14,14 +14,13 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create necessary directories first
+RUN mkdir -p /app/data /app/logs /app/config /app/src /app/templates
+
 # Copy application code
 COPY src/ ./src/
-COPY config/ ./config/
-COPY data/ ./data/
-COPY logs/ ./logs/
-
-# Create necessary directories
-RUN mkdir -p /app/data /app/logs /app/config
+COPY --chown=1000:1000 config/ ./config/ 2>/dev/null || echo "No config directory"
+RUN mkdir -p /app/data /app/logs
 
 # Environment variables
 ENV PYTHONUNBUFFERED=1

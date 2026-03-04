@@ -26,7 +26,7 @@ class DashboardServer:
         
     def load_existing_data(self):
         """Load existing metrics from files"""
-        metrics_path = Path("../data/metrics.json")
+        metrics_path = Path(__file__).parent.parent / "data" / "metrics.json"
         if metrics_path.exists():
             with open(metrics_path, 'r') as f:
                 self.earnings_data = json.load(f)
