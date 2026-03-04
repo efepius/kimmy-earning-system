@@ -1,0 +1,34 @@
+{
+  "higgsfield": {
+    "enabled": true,
+    "api_key": "YOUR_HIGGSFIELD_API_KEY",
+    "daily_content_target": 80
+  },
+  "platforms": {
+    "mturk": {
+      "enabled": true,
+      "min_pay": 15
+    },
+    "clickworker": {
+      "enabled": true,
+      "min_pay": 10
+    },
+    "medium": {
+      "enabled": true,
+      "articles_per_day": 3
+    },
+    "crypto_arbitrage": {
+      "enabled": true,
+      "risk_level": "medium"
+    }
+  },
+  "ai_models": {
+    "primary": "gpt-4",
+    "fallback": "claude-3"
+  },
+  "revenue_optimization": {
+    "aggressive_mode": true,
+    "diversification": true,
+    "reinvest_percentage": 30
+  }
+}

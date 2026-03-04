@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  kimmy-system:
+    build: .
+    container_name: kimmy-earning-system
+    restart: always
+    ports:
+      - "80:8080"  # Map to port 80 for web access
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=production
+      - PORT=8080
+      - HIGGSFIELD_API_KEY=${HIGGSFIELD_API_KEY}
+      - MTURK_ACCESS_KEY=${MTURK_ACCESS_KEY}
+      - MTURK_SECRET_KEY=${MTURK_SECRET_KEY}
+    networks:
+      - kimmy-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  redis:
+    image: redis:alpine
+    container_name: kimmy-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - kimmy-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: kimmy-db
+    restart: always
+    environment:
+      - POSTGRES_DB=kimmy
+      - POSTGRES_USER=kimmy_user
+      - POSTGRES_PASSWORD=secure_password_change_me
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - kimmy-network
+
+networks:
+  kimmy-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:

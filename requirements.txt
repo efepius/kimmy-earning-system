@@ -1,0 +1,7 @@
+flask==3.0.0
+flask-socketio==5.3.5
+python-socketio==5.10.0
+requests==2.31.0
+aiohttp==3.9.1
+asyncio==3.4.3
+python-dotenv==1.0.0

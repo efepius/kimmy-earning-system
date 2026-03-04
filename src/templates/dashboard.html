@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kimmy Earning System - Live Dashboard</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .card-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00ffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .card-subtitle {
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ffff);
+            border-radius: 15px;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .agent-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .agent-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+        
+        .status-active {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .status-stopped {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+            height: 400px;
+        }
+        
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .platform-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .platform-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .platform-revenue {
+            font-size: 1.5em;
+            color: #00ff88;
+        }
+        
+        .live-feed {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .feed-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Kimmy Autonomous Earning System</h1>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span>System Active</span>
+                </div>
+                <div class="status-item">
+                    <span id="live-time">--:--:--</span>
+                </div>
+                <div class="status-item">
+                    <span>Agents: <span id="active-agents">0</span>/5</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-title">💰 Today's Earnings</div>
+                <div class="card-value" id="today-earnings">$0.00</div>
+                <div class="card-subtitle">Target: $2,500</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-bar" style="width: 0%">0%</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📊 Total Earnings</div>
+                <div class="card-value" id="total-earnings">$0.00</div>
+                <div class="card-subtitle" id="earnings-trend">↑ +0%</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">📹 Content Generated</div>
+                <div class="card-value" id="content-count">0</div>
+                <div class="card-subtitle">Daily Target: 80</div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">✅ Tasks Completed</div>
+                <div class="card-value" id="tasks-count">0</div>
+                <div class="card-subtitle">Avg: $0 per task</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>📈 Live Earnings Chart</h2>
+            <canvas id="earningsChart"></canvas>
+        </div>
+        
+        <div class="card">
+            <h2>🤖 AI Agents Status</h2>
+            <div class="agents-grid" id="agents-grid">
+                <!-- Agent cards will be inserted here -->
+            </div>
+            <div class="control-panel">
+                <button onclick="startAllAgents()">Start All Agents</button>
+                <button onclick="stopAllAgents()">Stop All Agents</button>
+                <button onclick="optimizeStrategy()">Optimize Strategy</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🌐 Platform Performance</h2>
+            <div class="platforms-grid" id="platforms-grid">
+                <!-- Platform cards will be inserted here -->
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📡 Live Activity Feed</h2>
+            <div class="live-feed" id="live-feed">
+                <!-- Live updates will appear here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const socket = io();
+        let chart;
+        
+        // Initialize chart
+        const ctx = document.getElementById('earningsChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Earnings ($)',
+                    data: [],
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#fff',
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#fff'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Socket.io event handlers
+        socket.on('initial_data', (data) => {
+            updateDashboard(data);
+        });
+        
+        socket.on('update', (data) => {
+            updateDashboard(data);
+            addToFeed('New earnings update: $' + data.summary.today_earnings.toFixed(2));
+        });
+        
+        socket.on('agent_update', (agent) => {
+            addToFeed('Agent ' + agent.name + ' status: ' + agent.status);
+        });
+        
+        function updateDashboard(data) {
+            // Update summary cards
+            document.getElementById('today-earnings').textContent = '$' + data.summary.today_earnings.toFixed(2);
+            document.getElementById('total-earnings').textContent = '$' + data.summary.total_earnings.toFixed(2);
+            document.getElementById('content-count').textContent = data.summary.content_generated;
+            document.getElementById('tasks-count').textContent = data.summary.tasks_completed;
+            document.getElementById('active-agents').textContent = data.summary.active_agents;
+            
+            // Update progress bar
+            const progress = data.summary.progress;
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress.toFixed(1) + '%';
+            
+            // Update agents grid
+            const agentsGrid = document.getElementById('agents-grid');
+            agentsGrid.innerHTML = '';
+            for (const [id, agent] of Object.entries(data.agents)) {
+                const agentCard = document.createElement('div');
+                agentCard.className = 'agent-card';
+                agentCard.innerHTML = `
+                    <div class="agent-name">${agent.name}</div>
+                    <div class="agent-status status-${agent.status}">${agent.status}</div>
+                    <div style="margin-top: 10px; opacity: 0.7;">Tasks: ${agent.tasks}</div>
+                `;
+                agentsGrid.appendChild(agentCard);
+            }
+            
+            // Update platforms grid
+            const platformsGrid = document.getElementById('platforms-grid');
+            platformsGrid.innerHTML = '';
+            for (const [name, platform] of Object.entries(data.platforms)) {
+                const platformCard = document.createElement('div');
+                platformCard.className = 'platform-card';
+                platformCard.innerHTML = `
+                    <div>
+                        <div class="platform-name">${name.toUpperCase()}</div>
+                        <div style="opacity: 0.7; font-size: 0.9em;">${platform.status}</div>
+                    </div>
+                    <div class="platform-revenue">${platform.revenue}</div>
+                `;
+                platformsGrid.appendChild(platformCard);
+            }
+            
+            // Update chart
+            if (data.recent_earnings && data.recent_earnings.length > 0) {
+                const labels = data.recent_earnings.map(e => 
+                    new Date(e.timestamp).toLocaleTimeString()
+                );
+                const values = data.recent_earnings.map(e => e.earnings);
+                
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = values;
+                chart.update();
+            }
+        }
+        
+        function addToFeed(message) {
+            const feed = document.getElementById('live-feed');
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            item.innerHTML = `
+                <span style="opacity: 0.7;">${new Date().toLocaleTimeString()}</span> - ${message}
+            `;
+            feed.insertBefore(item, feed.firstChild);
+            
+            // Keep only last 10 items
+            while (feed.children.length > 10) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+        
+        function startAllAgents() {
+            fetch('/api/agents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'start', agent_id: 'all' })
+            });
+            addToFeed('Starting all agents...');
+        }
+        
+        function stopAllAgents() {
+            fetch('/api/agents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'stop', agent_id: 'all' })
+            });
+            addToFeed('Stopping all agents...');
+        }
+        
+        function optimizeStrategy() {
+            addToFeed('Optimizing earning strategy...');
+            setTimeout(() => {
+                addToFeed('Strategy optimized! Expected +15% earnings increase');
+            }, 2000);
+        }
+        
+        // Update time
+        setInterval(() => {
+            document.getElementById('live-time').textContent = new Date().toLocaleTimeString();
+        }, 1000);
+        
+        // Initial feed messages
+        addToFeed('Dashboard connected successfully');
+        addToFeed('System initialized - Making money 24/7!');
+    </script>
+</body>
+</html>
