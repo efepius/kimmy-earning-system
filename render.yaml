@@ -1,17 +1,14 @@
 services:
-  # Web Service - Main Application
   - type: web
     name: kimmy-earning-system
-    env: python
+    runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: python src/dashboard.py
     envVars:
-      - key: PYTHONUNBUFFERED
-        value: 1
+      - key: PYTHON_VERSION
+        value: 3.11.0
       - key: PORT
-        value: 8080
-      - key: FLASK_ENV
-        value: production
+        value: 10000
       - key: HIGGSFIELD_API_KEY
         sync: false
       - key: DATABASE_URL

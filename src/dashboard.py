@@ -153,5 +153,7 @@ if __name__ == '__main__':
     update_thread.start()
     
     # Run server
-    print("Dashboard running at http://localhost:8080")
-    socketio.run(app, host='0.0.0.0', port=8080, debug=False)
+    import os
+    port = int(os.environ.get('PORT', 8080))
+    print(f"Dashboard running at http://localhost:{port}")
+    socketio.run(app, host='0.0.0.0', port=port, debug=False)
